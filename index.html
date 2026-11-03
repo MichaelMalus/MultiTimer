@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MultiTimer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>MultiTimer</h1>
+  <button id="start" class="primary" title="Start a new timer (N)">▶ Start timer</button>
+</header>
+<main>
+  <section>
+    <h2>Running <span id="running-count" class="count"></span></h2>
+    <ul id="running" class="tree"></ul>
+    <p id="empty" class="hint">No running timers. Press <kbd>N</kbd> or the button to start one — name it later.</p>
+  </section>
+  <details id="completed-wrap">
+    <summary>Completed <span id="completed-count" class="count"></span></summary>
+    <ul id="completed" class="tree"></ul>
+    <button id="clear" class="danger small">Delete all completed</button>
+  </details>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
