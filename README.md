@@ -10,3 +10,6 @@ Hierarchical stopwatch timers in the browser. No build step — static files ser
 
 ## Deploy
 Settings → Pages → Deploy from branch → select the branch, `/ (root)`.
+
+## Tracking conversation drift
+Start a topic (`N`). When the conversation wanders, hit **Tangent!** (`T`) — it starts a child of the current (most recently started, highlighted) timer. Tangents of tangents nest deeper; the coloured badge shows how many levels off-topic you are. **Back on topic** (`B`) stops the current tangent. Each timer shows how long, and what share of its time, was spent off-topic in its tangents.

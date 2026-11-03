@@ -9,13 +9,17 @@
 <body>
 <header>
   <h1>MultiTimer</h1>
-  <button id="start" class="primary" title="Start a new timer (N)">▶ Start timer</button>
+  <div class="actions">
+    <button id="start" title="Start a new top-level topic (N)">▶ New topic</button>
+    <button id="tangent" class="primary" title="Start a tangent under the current timer (T)">↳ Tangent!</button>
+    <button id="back" title="Stop the current timer and return to its parent (B)">↩ Back on topic</button>
+  </div>
 </header>
 <main>
   <section>
     <h2>Running <span id="running-count" class="count"></span></h2>
     <ul id="running" class="tree"></ul>
-    <p id="empty" class="hint">No running timers. Press <kbd>N</kbd> or the button to start one — name it later.</p>
+    <p id="empty" class="hint">No running timers. Press <kbd>N</kbd> to start a topic, <kbd>T</kbd> when the conversation drifts, <kbd>B</kbd> when it comes back. Name things later.</p>
   </section>
   <details id="completed-wrap">
     <summary>Completed <span id="completed-count" class="count"></span></summary>

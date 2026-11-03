@@ -59,6 +59,23 @@ function deleteTimer(id) {
   timers = timers.filter(x => x !== t);
   commit();
 }
+// "Current" = the most recently started running timer (where the conversation is now).
+const current = () => timers.filter(isRunning).sort((a, b) => b.start - a.start)[0];
+function tangent() { startTimer(current()?.id ?? null); }
+function back() { const c = current(); if (c) stopTimer(c.id); }
+
+// Time during which any descendant (tangent) was running, within this timer's span.
+function offTopic(t) {
+  const now = Date.now(), lo = t.start, hi = t.end ?? now;
+  const iv = descendants(t.id).map(d => [Math.max(d.start, lo), Math.min(d.end ?? now, hi)])
+    .filter(([a, b]) => b > a).sort((x, y) => x[0] - y[0]);
+  let total = 0, cs = -1, ce = -1;
+  for (const [a, b] of iv) {
+    if (a > ce) { total += ce - cs; cs = a; ce = b; } else ce = Math.max(ce, b);
+  }
+  return total + ce - cs;
+}
+
 function commit() { save(); render(); }
 
 // ---- rendering ----
@@ -100,7 +117,7 @@ function btn(text, title, onclick, cls = 'small') {
 function buildNode(t, list, running) {
   const kids = buildLevel(list, t.id, running);
   const li = el('li');
-  const row = el('div', { className: 'timer' + (running ? ' running' : ''), draggable: true });
+  const row = el('div', { className: 'timer' + (running ? ' running' : '') + (t === current() ? ' current' : ''), draggable: true });
   row.dataset.id = t.id;
 
   const toggle = btn(kids.length ? (t.collapsed ? '▸' : '▾') : '', 'Collapse/expand', () => {
@@ -115,6 +132,11 @@ function buildNode(t, list, running) {
 
   const time = el('span', { className: 'elapsed' });
   time.dataset.id = t.id;
+  const off = el('span', { className: 'offtopic', title: 'Time spent on tangents (any child running)' });
+  off.dataset.id = t.id;
+  const depth = ancestors(t).length;
+  const badge = el('span', { className: 'depth d' + Math.min(depth, 4),
+    textContent: depth ? '↳' + depth : 'topic', title: depth ? `${depth} level(s) off the main topic` : 'Main topic' });
 
   const move = el('select', { title: 'Move under…' });
   move.append(el('option', { value: '', textContent: '↳ Move…', disabled: true, selected: true }),
@@ -138,7 +160,7 @@ function buildNode(t, list, running) {
   actions.append(move);
 
   row.append(el('span', { className: 'handle', textContent: '⠿', title: 'Drag onto another timer to nest' }),
-             toggle, name, time, actions);
+             toggle, badge, name, off, time, actions);
 
   const crumbs = [];
   const real = byId(t.parentId);
@@ -182,6 +204,11 @@ function tick() {
     const t = byId(s.dataset.id);
     if (t) s.textContent = fmt(elapsed(t));
   });
+  document.querySelectorAll('.offtopic').forEach(s => {
+    const t = byId(s.dataset.id); if (!t) return;
+    const o = offTopic(t), e = elapsed(t);
+    s.textContent = o > 0 ? `off-topic ${fmt(o)} (${Math.round(100 * o / Math.max(e, 1))}%)` : '';
+  });
 }
 
 // ---- wiring ----
@@ -193,9 +220,13 @@ document.getElementById('clear').onclick = () => {
   timers = timers.filter(t => !done.has(t.id));
   commit();
 };
+document.getElementById('tangent').onclick = tangent;
+document.getElementById('back').onclick = back;
 document.addEventListener('keydown', e => {
-  if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey &&
-      !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) startTimer();
+  if (e.ctrlKey || e.metaKey || e.altKey ||
+      ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'n') startTimer(); else if (k === 't') tangent(); else if (k === 'b') back();
 });
 window.addEventListener('storage', e => { if (e.key === KEY) { timers = load(); render(); } });
 setInterval(tick, 250);
